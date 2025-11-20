@@ -294,35 +294,6 @@ class UmiDataset(BaseDataset):
                 rel_obs_pose = mat_to_pose10d(rel_obs_pose_mat)
                 obs_dict[f'robot{robot_id}_eef_pos_wrt{other_robot_id}'] = rel_obs_pose[:,:3]
                 obs_dict[f'robot{robot_id}_eef_rot_axis_angle_wrt{other_robot_id}'] = rel_obs_pose[:,3:]
-                
-        # generate relative pose with respect to episode start
-        for robot_id in range(self.num_robot):
-            # HACK: add noise to episode start pose
-            if (f'robot{other_robot_id}_eef_pos_wrt_start' not in self.shape_meta['obs']) and \
-                (f'robot{other_robot_id}_eef_rot_axis_angle_wrt_start' not in self.shape_meta['obs']):
-                continue
-            
-            # convert pose to mat
-            pose_mat = pose_to_mat(np.concatenate([
-                obs_dict[f'robot{robot_id}_eef_pos'],
-                obs_dict[f'robot{robot_id}_eef_rot_axis_angle']
-            ], axis=-1))
-            
-            # get start pose
-            start_pose = obs_dict[f'robot{robot_id}_demo_start_pose'][0]
-            # HACK: add noise to episode start pose
-            start_pose += np.random.normal(scale=[0.05,0.05,0.05,0.05,0.05,0.05],size=start_pose.shape)
-            start_pose_mat = pose_to_mat(start_pose)
-            rel_obs_pose_mat = convert_pose_mat_rep(
-                pose_mat,
-                base_pose_mat=start_pose_mat,
-                pose_rep='relative',
-                backward=False)
-            
-            rel_obs_pose = mat_to_pose10d(rel_obs_pose_mat)
-            # HACK: add noise to episode start pose
-            # obs_dict[f'robot{robot_id}_eef_pos_wrt_start'] = rel_obs_pose[:,:3]
-            obs_dict[f'robot{robot_id}_eef_rot_axis_angle_wrt_start'] = rel_obs_pose[:,3:]
 
         del_keys = list()
         for key in obs_dict:
